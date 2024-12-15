@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="img/logo_template.png">
+    <title>Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .container {
+            padding: 2rem;
+        }
+
+        .button1{
+            margin-left: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .chart-container {
+            display: flex; /* Mengatur layout horizontal */
+            flex-wrap: wrap; /* Memastikan diagram tetap rapi di layar kecil */
+            justify-content: center; /* Meratakan secara horizontal */
+            align-items: flex-start; /* Mengatur elemen di atas */
+            gap: 2rem; /* Memberikan jarak antar diagram */
+            padding: 2rem 0;
+            background-color: #ffffff; /* Latar belakang putih untuk kontras */
+            border-radius: 10px; /* Membuat sudut elemen lebih lembut */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Memberikan efek bayangan */
+        }
+
+        canvas {
+            max-width: 45%; /* Lebar maksimum 45% dari kontainer */
+            height: auto; /* Menjaga rasio diagram */
+            padding: 1rem; /* Memberikan jarak di dalam diagram */
+            border: 1px solid #ddd; /* Tambahkan garis batas halus */
+            border-radius: 10px; /* Membuat tepi melengkung */
+            background-color: #f9f9f9; /* Latar belakang lembut untuk diagram */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Bayangan ringan */
+        }
+
+        .bar-chart-container, .pie-chart-container {
+            display: flex;
+            flex-direction: column; /* Mengatur elemen diagram ke arah vertikal */
+            align-items: center; /* Menyelaraskan ke tengah */
+        }
+
+        .bar-chart, .pie-chart {
+            width: 100%; /* Memastikan ukuran proporsional di dalam kontainer */
+            max-width: 500px; /* Ukuran maksimum untuk diagram */
+            height: auto; /* Menjaga rasio */
+            margin: 0 auto; /* Menempatkan di tengah */
+        }
+
+        .filters {
+            display: flex; /* Layout fleksibel */
+            justify-content: center; /* Meratakan konten ke tengah */
+            align-items: center; /* Menyelaraskan secara vertikal */
+            gap: 1rem; /* Jarak antar elemen */
+            padding: 1rem 0; /* Jarak atas dan bawah */
+            background-color: #f8f9fa; /* Warna latar lembut */
+            border-radius: 10px; /* Membuat sudut melengkung */
+        }
+
+        .filters select, .filters button {
+            padding: 0.5rem 1rem; /* Memberikan ruang di dalam elemen */
+            border: 1px solid #ddd; /* Batas elemen */
+            border-radius: 5px; /* Membuat sudut melengkung */
+            background-color: #ffffff; /* Latar belakang putih */
+            cursor: pointer; /* Menampilkan pointer saat hover */
+            transition: all 0.3s ease; /* Efek animasi saat hover */
+        }
+
+        .filters button:hover, .filters select:hover {
+            background-color: #007bff; /* Warna biru saat hover */
+            color: white; /* Warna teks putih */
+        }
+
+        header h1 {
+            font-size: 2rem; /* Ukuran teks header */
+            font-weight: bold; /* Teks tebal */
+            margin: 0; /* Hilangkan margin default */
+        }
+
+        table {
+            margin-top: 2rem;
+            border-spacing: 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Efek bayangan */
+        }
+
+        th {
+            font-size: 1rem;
+            letter-spacing: 0.05rem;
+        }
+
+        .button7{
+            margin-left: 50rem;
+        }
+
+        @media (max-width: 600px) {
+            /* Header */
+            header h1 {
+                font-size: 1.4rem; /* Mengurangi ukuran font header */
+                padding: 0.5rem; /* Menambahkan sedikit padding untuk header */
+            }
+
+            /* Container */
+            .container {
+                padding: 1rem; /* Mengurangi padding di container */
+            }
+
+            /* Tabel */
+            table {
+                font-size: 0.8rem; /* Mengurangi ukuran font pada tabel */
+            }
+
+            th, td {
+                padding: 0.6rem; /* Mengurangi padding pada tabel */
+            }
+
+            /* Tombol */
+            .button1, .button7 {
+                margin-left: 0; /* Menghilangkan margin kiri pada tombol */
+                width: 100%; /* Membuat tombol memenuhi lebar layar */
+                margin-bottom: 1rem; /* Memberikan jarak antar tombol */
+            }
+
+            /* Filter */
+            .filters {
+                flex-direction: column; /* Menata filter secara vertikal */
+                align-items: flex-start; /* Menyelaraskan elemen filter ke kiri */
+                gap: 0.5rem; /* Mengurangi jarak antar elemen filter */
+            }
+
+            /* Chart */
+            .chart-container {
+                display: block; /* Menampilkan diagram dalam blok */
+                padding: 1rem 0; /* Menambah padding vertikal */
+            }
+
+            canvas {
+                max-width: 90%; /* Mengurangi lebar canvas */
+                height: auto; /* Menjaga proporsi tinggi */
+                margin: 0 auto; /* Menjaga chart di tengah */
+            }
+
+            /* Table yang lebih responsif untuk layar sempit */
+            table {
+                font-size: 0.75rem; /* Mengurangi ukuran font pada tabel */
+                overflow-x: auto; /* Memungkinkan tabel di-scroll horizontal */
+                display: block; /* Mengubah tabel menjadi blok */
+            }
+
+            .filters select, .filters button {
+                width: 100%; /* Membuat select dan button memenuhi lebar */
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dashboard Penjualan</h1>
+    </header>
+
+    <div class="container">
+    
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th rowspan="2">Tahun</th>
+                    <th colspan="12">Bulan</th>
+                </tr>
+                <tr>
+                    <th>Januari</th>
+                    <th>Februari</th>
+                    <th>Maret</th>
+                    <th>April</th>
+                    <th>Mei</th>
+                    <th>Juni </th>
+                    <th>Juli</th>
+                    <th>Agustus</th>
+                    <th>September</th>
+                    <th>Oktober</th>
+                    <th>November</th>
+                    <th>Desember</th>
+                </tr>
+            </thead>            
+            <tbody></tbody>
+            <tfoot id="totalRow" style="display: none;"></tfoot>
+        </table>
+    
+        <div class="chart-container">
+            <canvas id="salesBarChart" class="bar-chart"></canvas>
+        </div>
+    </div>    
+
+    <script>
+        // Deklarasi elemen HTML
+        const dataTable = document.getElementById('data-table').querySelector('tbody');
+        const salesBarChartCanvas = document.getElementById('salesBarChart');
+
+        // Deklarasi variabel global untuk grafik
+        let salesBarChart;
+
+        // Data penjualan
+        let data = [
+            {
+                "Tahun": "2022",
+                "Januari": "4017",
+                "Februari": "6135",
+                "Maret": "7091",
+                "April": "5841",
+                "Mei": "5036",
+                "Juni": "4547",
+                "Juli": "3467",
+                "Agustus": "3970",
+                "September": "6313",
+                "Oktober": "3595",
+                "November": "9207",
+                "Desember": "5945"
+            },
+            {
+                "Tahun": "2023",
+                "Januari": "2416",
+                "Februari": "4136",
+                "Maret": "7935",
+                "April": "8004",
+                "Mei": "9505",
+                "Juni": "5026",
+                "Juli": "6108",
+                "Agustus": "6343",
+                "September": "9404",
+                "Oktober": "9280",
+                "November": "9287",
+                "Desember": "8689"
+            }
+        ];
+
+        // Fungsi untuk menampilkan data dalam tabel
+        function displayTable(data) {
+            dataTable.innerHTML = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                Object.keys(row).forEach(key => {
+                    const td = document.createElement('td');
+                    if (key !== 'Tahun' && !isNaN(row[key])) {
+                        td.textContent = parseFloat(row[key]).toLocaleString('id-ID');
+                    } else {
+                        td.textContent = row[key]; // Tidak diformat untuk tahun
+                    }
+                    tr.appendChild(td);
+                });
+                dataTable.appendChild(tr);
+            });
+        }
+
+        // Fungsi untuk membuat/memperbarui grafik
+        function generateCharts(data, filterYear) {
+            if (salesBarChart) {
+                salesBarChart.destroy();
+            }
+
+            const labels = [
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+
+            let year2022 = data.find(row => row['Tahun'] === '2022');
+            let year2023 = data.find(row => row['Tahun'] === '2023');
+
+            let values2022 = year2022 ? labels.map(month => parseFloat(year2022[month]) || 0) : [];
+            let values2023 = year2023 ? labels.map(month => parseFloat(year2023[month]) || 0) : [];
+
+            salesBarChart = new Chart(salesBarChartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '2022', // Tetap sebagai string
+                            data: values2022,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            hidden: filterYear === '2023'
+                        },
+                        {
+                            label: '2023', // Tetap sebagai string
+                            data: values2023,
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            hidden: filterYear === '2022'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Laporan Penjualan'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 2500,
+                                callback: function(value) {
+                                    return value.toLocaleString('id-ID');
+                                }
+                            },
+                            max: 10000
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayTable(data);
+            generateCharts(data);
+        });
+    </script>
+</body>
+</html>
